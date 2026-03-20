@@ -3,6 +3,8 @@ package utils
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -67,7 +69,25 @@ func FetchURL(targetURL string) (string, error) {
 		return decodeResponse(body, cd)
 	}
 
-	return string(body), nil
+	content := string(body)
+
+	if isBase64String(content) {
+		decoded, err := base64.StdEncoding.DecodeString(content)
+		if err == nil {
+			return string(decoded), nil
+		}
+	}
+
+	return content, nil
+}
+
+func isBase64String(s string) bool {
+	s = strings.TrimSpace(s)
+	if len(s) < 4 {
+		return false
+	}
+	_, err := base64.StdEncoding.DecodeString(s)
+	return err == nil && !strings.Contains(s, "://")
 }
 
 func decodeResponse(body []byte, encoding string) (string, error) {
@@ -79,9 +99,25 @@ func decodeResponse(body []byte, encoding string) (string, error) {
 		}
 		result, err := io.ReadAll(reader)
 		reader.Close()
-		return string(result), err
+
+		content := string(result)
+		if isBase64String(content) {
+			decoded, err := base64.StdEncoding.DecodeString(content)
+			if err == nil {
+				return string(decoded), nil
+			}
+		}
+
+		return content, err
 	default:
-		return string(body), nil
+		content := string(body)
+		if isBase64String(content) {
+			decoded, err := base64.StdEncoding.DecodeString(content)
+			if err == nil {
+				return string(decoded), nil
+			}
+		}
+		return content, nil
 	}
 }
 
@@ -102,6 +138,15 @@ type Node struct {
 }
 
 func ParseProxyURL(proxyURL string) (Node, error) {
+	proxyURL = strings.TrimSpace(proxyURL)
+	if proxyURL == "" {
+		return Node{}, fmt.Errorf("empty proxy URL")
+	}
+
+	if strings.HasPrefix(proxyURL, "vmess://") {
+		return parseVmess(proxyURL)
+	}
+
 	u, err := url.Parse(proxyURL)
 	if err != nil {
 		return Node{}, err
@@ -145,11 +190,42 @@ func ParseProxyURL(proxyURL string) (Node, error) {
 			node.Password = userInfo[idx+1:]
 		}
 
-	case "vmess":
-		node.Type = "vmess"
-
 	default:
 		return Node{}, fmt.Errorf("unsupported scheme: %s", u.Scheme)
+	}
+
+	return node, nil
+}
+
+func parseVmess(vmessURL string) (Node, error) {
+	vmessBase64 := strings.TrimPrefix(vmessURL, "vmess://")
+
+	decoded, err := base64.StdEncoding.DecodeString(vmessBase64)
+	if err != nil {
+		return Node{}, fmt.Errorf("failed to decode vmess: %w", err)
+	}
+
+	var vmess struct {
+		Addr string `json:"add"`
+		Port string `json:"port"`
+		Name string `json:"ps"`
+		ID   string `json:"id"`
+		Type string `json:"net"`
+	}
+
+	if err := json.Unmarshal(decoded, &vmess); err != nil {
+		return Node{}, fmt.Errorf("failed to parse vmess json: %w", err)
+	}
+
+	node := Node{
+		Type:     "vmess",
+		Server:   vmess.Addr,
+		Name:     vmess.Name,
+		Password: vmess.ID,
+	}
+
+	if port, err := strconv.Atoi(vmess.Port); err == nil {
+		node.Port = port
 	}
 
 	return node, nil
@@ -161,6 +237,8 @@ func CheckProxy(node Node) (int, bool) {
 		return checkTrojan(node)
 	case "ss":
 		return checkSS(node)
+	case "vmess":
+		return checkTrojan(node)
 	default:
 		return 0, false
 	}

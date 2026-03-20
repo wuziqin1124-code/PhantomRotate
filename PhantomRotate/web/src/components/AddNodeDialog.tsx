@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Link } from 'lucide-react'
 
 interface AddNodeDialogProps {
   onClose: () => void
@@ -24,11 +24,19 @@ export function AddNodeDialog({ onClose, onAdd }: AddNodeDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-800">Add Node</h2>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+              <Link className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800">添加节点</h2>
+              <p className="text-xs text-slate-500">手动输入节点链接</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -37,37 +45,40 @@ export function AddNodeDialog({ onClose, onAdd }: AddNodeDialogProps) {
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Proxy URL
+              节点链接
             </label>
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="trojan://xxx@server:port#name"
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="trojan://password@server:port#节点名称"
+              className="input"
+              autoFocus
             />
-            <p className="mt-2 text-xs text-slate-500">
-              Support trojan, ss, vmess protocols
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-md">Trojan</span>
+              <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-md">Shadowsocks</span>
+              <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-md">VMess</span>
+            </div>
           </div>
           
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="btn-secondary"
             >
-              Cancel
+              取消
             </button>
             <button
               type="submit"
               disabled={loading || !url.trim()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="btn-primary"
             >
-              {loading ? 'Adding...' : 'Add'}
+              {loading ? '添加中...' : '添加'}
             </button>
           </div>
         </form>
