@@ -147,6 +147,10 @@ func ParseProxyURL(proxyURL string) (Node, error) {
 		return parseVmess(proxyURL)
 	}
 
+	if strings.HasPrefix(proxyURL, "http://") || strings.HasPrefix(proxyURL, "https://") {
+		return Node{}, fmt.Errorf("skipping URL")
+	}
+
 	u, err := url.Parse(proxyURL)
 	if err != nil {
 		return Node{}, err
@@ -185,10 +189,17 @@ func ParseProxyURL(proxyURL string) (Node, error) {
 			node.Name = fmt.Sprintf("SS-%s:%d", node.Server, node.Port)
 		}
 		userInfo := u.User.String()
-		if idx := strings.Index(userInfo, "@"); idx != -1 {
-			node.Cipher = userInfo[:idx]
-			node.Password = userInfo[idx+1:]
+		decodedUserInfo, err := base64.StdEncoding.DecodeString(userInfo)
+		if err != nil {
+			return Node{}, fmt.Errorf("failed to decode ss userinfo: %w", err)
 		}
+		if idx := strings.Index(string(decodedUserInfo), ":"); idx != -1 {
+			node.Cipher = string(decodedUserInfo[:idx])
+			node.Password = string(decodedUserInfo[idx+1:])
+		}
+
+	case "ssr":
+		return Node{}, fmt.Errorf("unsupported scheme: ssr")
 
 	default:
 		return Node{}, fmt.Errorf("unsupported scheme: %s", u.Scheme)
