@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Loader2, CloudDownload } from 'lucide-react'
+import { X, Loader2, Download } from 'lucide-react'
 
 interface SubscriptionDialogProps {
   onClose: () => void
@@ -30,7 +30,7 @@ export function SubscriptionDialog({ onClose, onLoad }: SubscriptionDialogProps)
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-              <CloudDownload className="w-5 h-5 text-white" />
+              <Download className="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-800">订阅导入</h2>

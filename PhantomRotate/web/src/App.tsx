@@ -7,7 +7,7 @@ import { SubscriptionDialog } from './components/SubscriptionDialog'
 import { ModeSelector } from './components/ModeSelector'
 import { ClashStatus } from './components/ClashStatus'
 import { api, Node, NodePool } from './lib/api'
-import { RefreshCw, Plus, Upload, Activity, Wifi, WifiOff } from 'lucide-react'
+import { RefreshCw, Plus, Upload, Activity, Wifi } from 'lucide-react'
 
 function App() {
   const [nodes, setNodes] = useState<Node[]>([])

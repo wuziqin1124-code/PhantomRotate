@@ -1,5 +1,5 @@
 import { Node } from '../lib/api'
-import { Trash2, CheckCircle, XCircle, Clock, Server, ChevronRight } from 'lucide-react'
+import { Trash2, Clock, Server, ChevronRight } from 'lucide-react'
 
 interface NodeTableProps {
   nodes: Node[]
