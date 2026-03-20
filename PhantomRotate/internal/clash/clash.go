@@ -99,14 +99,14 @@ func (m *Manager) Start() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	configPath := filepath.Join(m.configDir, "config.yaml")
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+	clashConfigPath := filepath.Join(m.configDir, "clash-config.yaml")
+	if _, err := os.Stat(clashConfigPath); os.IsNotExist(err) {
 		if err := m.generateDefaultConfig(); err != nil {
 			return fmt.Errorf("failed to generate default config: %w", err)
 		}
 	}
 
-	cmd := exec.Command(m.binPath, "-f", configPath, "-d", m.configDir)
+	cmd := exec.Command(m.binPath, "-f", clashConfigPath, "-d", m.configDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -152,13 +152,13 @@ func (m *Manager) UpdateConfig(cfg *ClashConfig) error {
 
 	m.config = cfg
 
-	configPath := filepath.Join(m.configDir, "config.yaml")
+	clashConfigPath := filepath.Join(m.configDir, "clash-config.yaml")
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(configPath, data, 0644); err != nil {
+	if err := os.WriteFile(clashConfigPath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
@@ -235,7 +235,7 @@ func (m *Manager) generateDefaultConfig() error {
 		return err
 	}
 
-	configPath := filepath.Join(m.configDir, "config.yaml")
+	configPath := filepath.Join(m.configDir, "clash-config.yaml")
 	return os.WriteFile(configPath, data, 0644)
 }
 
