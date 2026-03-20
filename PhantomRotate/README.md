@@ -108,7 +108,7 @@ PhantomRotate/
 
 ```yaml
 # 服务地址
-server_addr: :8080
+server_addr: :8888
 
 # 配置目录
 config_dir: ~/.phantomrotate
@@ -154,7 +154,7 @@ vmess://base64(json)
 ### 添加单个节点
 
 ```bash
-curl -X POST http://localhost:8080/api/nodes \
+curl -X POST http://localhost:8888/api/nodes \
   -H "Content-Type: application/json" \
   -d '{"url":"trojan://password@server:port#节点名称"}'
 ```
@@ -162,7 +162,7 @@ curl -X POST http://localhost:8080/api/nodes \
 ### 加载订阅
 
 ```bash
-curl -X POST http://localhost:8080/api/nodes/subscription \
+curl -X POST http://localhost:8888/api/nodes/subscription \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com/sub"}'
 ```
@@ -170,7 +170,7 @@ curl -X POST http://localhost:8080/api/nodes/subscription \
 ### 触发健康检查
 
 ```bash
-curl -X POST http://localhost:8080/api/pool/healthcheck
+curl -X POST http://localhost:8888/api/pool/healthcheck
 ```
 
 ## 界面预览
