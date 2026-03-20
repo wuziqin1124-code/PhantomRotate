@@ -228,7 +228,6 @@ func (m *Manager) generateDefaultConfig() error {
 			},
 		},
 		Proxies: []Proxy{},
-		Rules:   []string{"MATCH,proxy_pool"},
 	}
 
 	data, err := yaml.Marshal(cfg)

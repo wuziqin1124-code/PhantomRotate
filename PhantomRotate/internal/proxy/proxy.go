@@ -195,15 +195,13 @@ func (m *Manager) updateClashConfig() error {
 		ProxyGroups: []clash.ProxyGroup{
 			{
 				Name:     "proxy_pool",
-				Type:     "load-balance",
+				Type:     "select",
 				Proxies:  []string{},
 				URL:      m.config.HealthCheck.URL,
 				Interval: m.config.HealthCheck.Interval,
-				Strategy: "round-robin",
 			},
 		},
 		Proxies: []clash.Proxy{},
-		Rules:   []string{"MATCH,proxy_pool"},
 	}
 
 	for _, n := range m.nodes {
@@ -221,6 +219,8 @@ func (m *Manager) updateClashConfig() error {
 		cfg.Proxies = append(cfg.Proxies, proxy)
 		cfg.ProxyGroups[0].Proxies = append(cfg.ProxyGroups[0].Proxies, n.Name)
 	}
+
+	cfg.Rules = []string{"MATCH,proxy_pool"}
 
 	return m.clashMgr.UpdateConfig(cfg)
 }
