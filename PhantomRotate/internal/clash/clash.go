@@ -221,11 +221,10 @@ func (m *Manager) generateDefaultConfig() error {
 		ProxyGroups: []ProxyGroup{
 			{
 				Name:     "proxy_pool",
-				Type:     "load-balance",
+				Type:     "select",
 				Proxies:  []string{},
 				URL:      "https://www.google.com",
 				Interval: 300,
-				Strategy: "round-robin",
 			},
 		},
 		Proxies: []Proxy{},
