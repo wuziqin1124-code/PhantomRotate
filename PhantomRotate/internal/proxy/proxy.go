@@ -5,8 +5,11 @@ import (
 	"PhantomRotate/internal/config"
 	"PhantomRotate/internal/utils"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Manager struct {
@@ -66,12 +69,53 @@ func (m *Manager) LoadNodesFromSubscription(url string) error {
 		return fmt.Errorf("failed to fetch subscription: %w", err)
 	}
 
-	lines := utils.SplitLines(string(content))
-
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	m.nodes = []utils.Node{}
+
+	content = strings.TrimSpace(content)
+
+	if strings.Contains(content, "proxies:") || strings.HasPrefix(content, "port:") || strings.HasPrefix(content, "mixed-port:") {
+		var subCfg struct {
+			Proxies []map[string]interface{} `yaml:"proxies"`
+		}
+		if err := yaml.Unmarshal([]byte(content), &subCfg); err == nil && len(subCfg.Proxies) > 0 {
+			for i, p := range subCfg.Proxies {
+				node := utils.Node{
+					ID:   fmt.Sprintf("node-%d", i+1),
+					Name: getString(p, "name", fmt.Sprintf("Node-%d", i+1)),
+					Type: getString(p, "type", "trojan"),
+				}
+				switch node.Type {
+				case "trojan":
+					node.Server = getString(p, "server", "")
+					node.Password = getString(p, "password", "")
+					node.SNI = getString(p, "sni", "")
+					node.Peer = getString(p, "peer", "")
+					if skip, ok := p["skip-cert-verify"].(bool); ok {
+						node.SkipCert = skip
+					}
+				case "ss":
+					node.Server = getString(p, "server", "")
+					node.Password = getString(p, "password", "")
+					node.Cipher = getString(p, "cipher", "")
+					node.Server = getString(p, "server", "")
+				case "vmess":
+					node.Server = getString(p, "address", getString(p, "add", ""))
+					node.Password = getString(p, "uuid", getString(p, "id", ""))
+					node.Type = "vmess"
+				}
+				if node.Server != "" {
+					m.nodes = append(m.nodes, node)
+				}
+			}
+			fmt.Printf("Loaded %d nodes from Clash config subscription\n", len(m.nodes))
+			return m.updateClashConfig()
+		}
+	}
+
+	lines := utils.SplitLines(content)
 	for i, line := range lines {
 		line = utils.TrimSpace(line)
 		if line == "" {
@@ -80,7 +124,6 @@ func (m *Manager) LoadNodesFromSubscription(url string) error {
 
 		node, err := utils.ParseProxyURL(line)
 		if err != nil {
-			fmt.Printf("Line %d parse error: %v\n", i+1, err)
 			continue
 		}
 
@@ -90,6 +133,13 @@ func (m *Manager) LoadNodesFromSubscription(url string) error {
 
 	fmt.Printf("Loaded %d nodes from subscription\n", len(m.nodes))
 	return m.updateClashConfig()
+}
+
+func getString(m map[string]interface{}, key, defaultVal string) string {
+	if v, ok := m[key].(string); ok {
+		return v
+	}
+	return defaultVal
 }
 
 func (m *Manager) AddNode(nodeURL string) error {
