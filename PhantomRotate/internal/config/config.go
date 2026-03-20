@@ -27,7 +27,7 @@ func Load() *Config {
 
 	defaultDir := filepath.Join(home, ".phantomrotate")
 
-	viper.SetDefault("server_addr", ":8080")
+	viper.SetDefault("server_addr", ":8888")
 	viper.SetDefault("config_dir", defaultDir)
 	viper.SetDefault("clash_bin", "./clash-bin/clash-windows-amd64.exe")
 	viper.SetDefault("mixed_port", 1080)
