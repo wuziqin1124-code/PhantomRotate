@@ -1,0 +1,8 @@
+server_addr: :8080
+config_dir: ~/.phantomrotate
+clash_bin: ./clash-bin/clash-windows-amd64.exe
+mixed_port: 1080
+
+health_check:
+  url: https://www.google.com
+  interval: 300
