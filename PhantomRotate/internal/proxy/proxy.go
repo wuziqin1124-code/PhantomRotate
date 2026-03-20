@@ -185,6 +185,10 @@ func (m *Manager) StartHealthCheck(interval time.Duration) {
 }
 
 func (m *Manager) updateClashConfig() error {
+	if len(m.nodes) == 0 {
+		return nil
+	}
+
 	cfg := &clash.ClashConfig{
 		AllowLan:  false,
 		MixedPort: m.config.MixedPort,
