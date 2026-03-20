@@ -80,6 +80,7 @@ func (m *Manager) LoadNodesFromSubscription(url string) error {
 
 		node, err := utils.ParseProxyURL(line)
 		if err != nil {
+			fmt.Printf("Line %d parse error: %v\n", i+1, err)
 			continue
 		}
 
@@ -87,6 +88,7 @@ func (m *Manager) LoadNodesFromSubscription(url string) error {
 		m.nodes = append(m.nodes, node)
 	}
 
+	fmt.Printf("Loaded %d nodes from subscription\n", len(m.nodes))
 	return m.updateClashConfig()
 }
 
